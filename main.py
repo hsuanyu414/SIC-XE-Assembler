@@ -13,6 +13,8 @@ with open('./OPTAB.json', encoding="utf-8") as f :
 # lines = fd.readlines()
 
 SYMTAB = {}
+starting_address = 0
+program_length = 0 
 
 def intToHexStr(number):
 	hexStr = hex(number)
@@ -40,9 +42,6 @@ def pass1(fd):
 	duplicate_symbol = 0
 	label_found = 0
 	EXTEND = 0
-	starting_address = 0
-	program_length = 0 
-
 	print('LOC\tLABEL\tSTATEMENT\t\tOBJCODE')
 	lines = fd.readlines()
 	for line in lines:
