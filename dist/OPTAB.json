@@ -1,0 +1,22 @@
+{
+	"CLEAR"	:{"FORMAT":2, "OPCODE":"B4"},
+	"COMP"	:{"FORMAT":3, "OPCODE":"28"},
+	"COMPR"	:{"FORMAT":2, "OPCODE":"A0"},
+	"J"		:{"FORMAT":3, "OPCODE":"3C"},
+	"JEQ"	:{"FORMAT":3, "OPCODE":"30"},
+	"JLT"	:{"FORMAT":3, "OPCODE":"38"},
+	"JSUB"	:{"FORMAT":3, "OPCODE":"48"},
+	"LDA"	:{"FORMAT":3, "OPCODE":"00"},
+	"LDB"	:{"FORMAT":3, "OPCODE":"68"},
+	"LDCH"	:{"FORMAT":3, "OPCODE":"50"},
+	"LDT"	:{"FORMAT":3, "OPCODE":"74"},
+	"RD"	:{"FORMAT":3, "OPCODE":"D8"},
+	"RSUB"	:{"FORMAT":3, "OPCODE":"4C"},
+	"STA"	:{"FORMAT":3, "OPCODE":"0C"},
+	"STCH"	:{"FORMAT":3, "OPCODE":"54"},
+	"STL"	:{"FORMAT":3, "OPCODE":"14"},
+	"STX"	:{"FORMAT":3, "OPCODE":"10"},
+	"TD"	:{"FORMAT":3, "OPCODE":"E0"},
+	"TIXR"	:{"FORMAT":2, "OPCODE":"B8"},
+	"WD"	:{"FORMAT":3, "OPCODE":"DC"}
+}

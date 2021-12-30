@@ -1,12 +1,11 @@
 import json
+import sys
+import os
 
 print("this is SIC/XE assembler")
+current_folder = os.getcwd()
 
-fd = open("Fig2_5_TEST.txt", 'r', encoding='utf-8')
-fd1 = open("Pass1Result.txt", 'w', encoding='utf-8')
-fd2 = open("Pass2Result.txt", 'w', encoding='utf-8')
-
-with open('./OPTAB.json', encoding="utf-8") as f :
+with open(current_folder+'/'+'OPTAB.json', encoding="utf-8") as f :
 	OPTAB = json.load(f)
 	f.close()
 
@@ -15,6 +14,7 @@ with open('./OPTAB.json', encoding="utf-8") as f :
 SYMTAB = {}
 starting_address = 0
 program_length = 0 
+ofd = None
 
 def intToHexStr(number):
 	hexStr = hex(number)
@@ -25,18 +25,24 @@ def intToHexStr(number):
 
 def printline(LOCCTR, LABEL, OPCODE, OPERAND):
 	loc = intToHexStr(LOCCTR)
-	print(loc+'\t'+LABEL+'\t'+OPCODE+'\t'+OPERAND)
+	print(loc+'\t'+LABEL+'\t'+OPCODE+'\t'+OPERAND, file=ofd)
 
 def printSYMTAB(symtab):
 	print('========SYMTAB========')
 	print('SYMBOL\tADDRESS\n')
 	for i in symtab:
 		loc = intToHexStr(symtab[i])
-		print (i+'\t'+loc)
+		print (i+'\t'+loc, file=ofd)
 	print('======SYMTAB_END======')
 
 
-def pass1(fd):
+def pass1(inputFilePath, outputFilePath):
+	fd = open(current_folder+'/'+inputFilePath, 'r', encoding='utf-8')
+	if(outputFilePath):
+		ofd = open(current_folder+'/'+outputFilePath, 'w', encoding='utf-8')
+	else:
+		ofd = sys.stdout
+	# opening the input file and output file's fd
 	LOCCTR = 0
 	count = 0
 	duplicate_symbol = 0
@@ -107,8 +113,11 @@ def pass1(fd):
 	print('program_length = '+ intToHexStr(program_length))
 	return 
 
-def pass2(lines):
+def pass2(fd, target):
 	return
+# you should call pass1 first to get the SYMTAB
 
-pass1(fd)
 # print(SYMTAB)
+
+pass1('Fig2_5.txt', None)
+input('Press any key to continue')
