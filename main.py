@@ -14,6 +14,7 @@ with open(current_folder+'/'+'OPTAB.json', encoding="utf-8") as f :
 SYMTAB = {}
 starting_address = 0
 program_length = 0 
+EXTEND = 0
 ofd = None
 
 def intToHexStr(number):
@@ -35,6 +36,29 @@ def printSYMTAB(symtab):
 		print (i+'\t'+loc, file=ofd)
 	print('======SYMTAB_END======')
 
+def is_comment(instruction):
+	for i in instruction:#================================= To find the first index with content
+		if(len(i)!=0):
+			if(i[0] == '.'):#============================== If this is a comment
+				return True
+	return False
+
+def is_blankLine(instruction):
+	for i in instruction:
+		if(len(i)!=0):
+			return False
+	return True
+
+def in_OPTAB(element):
+	global EXTEND
+	EXTEND = 0
+	if(element in OPTAB):
+		return True
+	elif(len(element)>= 2 and element[0] == '+' and element[1:] in OPTAB):
+		EXTEND = 1
+		return True
+	else:
+		return False
 
 def pass1(inputFilePath, outputFilePath):
 	fd = open(current_folder+'/'+inputFilePath, 'r', encoding='utf-8')
@@ -47,18 +71,27 @@ def pass1(inputFilePath, outputFilePath):
 	count = 0
 	duplicate_symbol = 0
 	label_found = 0
-	EXTEND = 0
 	print('LOC\tLABEL\tSTATEMENT\t\tOBJCODE')
 	lines = fd.readlines()
 	for line in lines:
 		line = line.rstrip("\n")
 		instruction = line.split("\t")
-		if(instruction[1][0] == '.'):
-			continue# If this is a comment
-		if(len(instruction)==2):
-			if(instruction[0] in OPTAB):
+		if(is_comment(instruction)):
+			continue
+		if(is_blankLine(instruction)):
+			continue
+		if(len(instruction)==1):
+			if(len(instruction[0])==0):
+				continue
+			if(in_OPTAB(instruction[0])):
 				instruction.insert(0, '')
 			else:
+				print('label with no definition.')
+				return
+		if(len(instruction)==2):
+			if(in_OPTAB(instruction[0])):#====== If the first element is in OPTAB, append ' ' at index 0
+				instruction.insert(0, '')
+			else: #============================ Else (view as a label)
 				instruction.append('')
 		instruction.insert(0, str(0))
 		LABEL = instruction[1]
@@ -81,14 +114,16 @@ def pass1(inputFilePath, outputFilePath):
 				else:
 					SYMTAB[LABEL] = LOCCTR
 				#search OPTAB for OPCODE
-			if(OPCODE[0] == '+'):
-				OPCODE = OPCODE[1:]
-				EXTEND = 1
-			else:
-				EXTEND = 0
-			if(OPCODE in OPTAB):
-				FORMAT = (OPTAB[OPCODE]['FORMAT'])
-				LOCCTR += FORMAT+EXTEND
+			if(in_OPTAB(OPCODE)):
+				if(EXTEND):
+					FORMAT = (OPTAB[OPCODE[1:]]['FORMAT'])
+					if(FORMAT != 3):
+						print('+ cant use without FORMAT 3')
+						return
+					LOCCTR += (FORMAT+1)
+				else:
+					FORMAT = (OPTAB[OPCODE]['FORMAT'])
+					LOCCTR += FORMAT	
 			elif(OPCODE == 'WORD'):
 				LOCCTR += 3
 			elif(OPCODE == 'RESW'):
@@ -104,7 +139,7 @@ def pass1(inputFilePath, outputFilePath):
 				LOCCTR += 0
 			else:
 				print('invalid operation code')
-				# return
+				return
 		# print(SYMTAB)
 		printline(LOCCTR, LABEL, OPCODE, OPERAND)
 		count += 1
