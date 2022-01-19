@@ -2,7 +2,25 @@ import json
 import sys
 import os
 
-print("this is SIC/XE assembler")
+'''
+OS：Windows
+
+Used language：python
+
+how to compile：
+1. use the python interpreter
+=======================
+$python main.py
+=======================
+
+2. use pyinstaller to pack main.py into 
+=======================
+$pyinstaller -F main.py
+=======================
+the packed exe file will be in the dist folder
+'''
+
+
 current_folder = os.getcwd()
 
 with open(current_folder+'/'+'OPTAB.json', encoding="utf-8") as f :
@@ -111,6 +129,12 @@ def pass1(inputFilePath, outputFilePath):
 				if(LABEL in SYMTAB):#if found
 					print('duplicate symbol')
 					return
+				elif(LABEL == 'WORD' or LABEL == 'RESW' or LABEL == 'RESB' or LABEL == 'BYTE' or LABEL == 'BASE'):
+					print('assembler driective as symble')
+					return
+				elif(in_OPTAB(LABEL)):
+					print('opcode as label')
+					return
 				else:
 					SYMTAB[LABEL] = LOCCTR
 				#search OPTAB for OPCODE
@@ -118,7 +142,7 @@ def pass1(inputFilePath, outputFilePath):
 				if(EXTEND):
 					FORMAT = (OPTAB[OPCODE[1:]]['FORMAT'])
 					if(FORMAT != 3):
-						print('+ cant use without FORMAT 3')
+						print('extend format without FORMAT 3')
 						return
 					LOCCTR += (FORMAT+1)
 				else:
@@ -149,10 +173,104 @@ def pass1(inputFilePath, outputFilePath):
 	return 
 
 def pass2(fd, target):
-	return
+	fd = open(current_folder+'/'+inputFilePath, 'r', encoding='utf-8')
+	if(outputFilePath):
+		ofd = open(current_folder+'/'+outputFilePath, 'w', encoding='utf-8')
+	else:
+		ofd = sys.stdout
+	# opening the input file and output file's fd
+	LOCCTR = 0
+	count = 0
+	duplicate_symbol = 0
+	label_found = 0
+	print('LOC\tLABEL\tSTATEMENT\t\tOBJCODE')
+	lines = fd.readlines()
+	for line in lines:
+		line = line.rstrip("\n")
+		instruction = line.split("\t")
+		if(is_comment(instruction)):
+			continue
+		if(is_blankLine(instruction)):
+			continue
+		if(len(instruction)==1):
+			if(len(instruction[0])==0):
+				continue
+			if(in_OPTAB(instruction[0])):
+				instruction.insert(0, '')
+			else:
+				print('label with no definition.')
+				return
+		if(len(instruction)==2):
+			if(in_OPTAB(instruction[0])):#====== If the first element is in OPTAB, append ' ' at index 0
+				instruction.insert(0, '')
+			else: #============================ Else (view as a label)
+				instruction.append('')
+		instruction.insert(0, str(0))
+		LABEL = instruction[1]
+		OPCODE = instruction[2]
+		OPERAND = instruction[3]
+		if(count == 0):
+			if(OPCODE == 'START'):
+				LOCCTR = int(OPERAND)
+				starting_address = LOCCTR
+				printline(LOCCTR, LABEL, OPCODE, OPERAND)
+				continue
+		if(OPCODE == 'END'):
+			printline(LOCCTR, LABEL, OPCODE, OPERAND)
+			break
+		else:#if this is not a comment line
+			if(len(LABEL)!=0):#if there is a symbol in the LABEL field
+				if(LABEL in SYMTAB):#if found
+					print('duplicate symbol')
+					return
+				elif(LABEL == 'WORD' or LABEL == 'RESW' or LABEL == 'RESB' or LABEL == 'BYTE' or LABEL == 'BASE'):
+					print('assembler driective as symble')
+					return
+				elif(in_OPTAB(LABEL)):
+					print('opcode as label')
+					return
+				else:
+					SYMTAB[LABEL] = LOCCTR
+				#search OPTAB for OPCODE
+			if(in_OPTAB(OPCODE)):
+				if(EXTEND):
+					FORMAT = (OPTAB[OPCODE[1:]]['FORMAT'])
+					if(FORMAT != 3):
+						print('extend format without FORMAT 3')
+						return
+					LOCCTR += (FORMAT+1)
+				else:
+					FORMAT = (OPTAB[OPCODE]['FORMAT'])
+					LOCCTR += FORMAT	
+			elif(OPCODE == 'WORD'):
+				LOCCTR += 3
+			elif(OPCODE == 'RESW'):
+				LOCCTR += 3*int(OPERAND)
+			elif(OPCODE == 'RESB'):
+				LOCCTR += 1*int(OPERAND)
+			elif(OPCODE == 'BYTE'):
+				if(OPERAND[0] == 'C'):
+					LOCCTR += len(OPERAND[2:-1])
+				elif(OPERAND[0] == 'X'):
+					LOCCTR += len(OPERAND[2:-1])//2
+			elif(OPCODE == 'BASE'):
+				LOCCTR += 0
+			else:
+				print('invalid operation code')
+				return
+		# print(SYMTAB)
+		printline(LOCCTR, LABEL, OPCODE, OPERAND)
+		count += 1
+	printSYMTAB(SYMTAB)
+	program_length = LOCCTR - starting_address
+	print('program_length = '+ intToHexStr(program_length))
+	return 
 # you should call pass1 first to get the SYMTAB
 
 # print(SYMTAB)
 
-pass1('Fig2_5.txt', None)
+fileName = input("Please input the file name : ")
+pass1(fileName, None)
+print('======== pass1 complete ========')
+
 input('Press any key to continue')
